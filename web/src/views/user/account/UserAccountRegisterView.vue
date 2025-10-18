@@ -2,9 +2,9 @@
 
 <ContentField>
 
-    <div class="row justify-content-md-center">
+        <div class="row justify-content-md-center">
         <div class="col-3">
-            <form @submit.prevent="login">
+            <form @submit.prevent="register">
                 <div class="mb-3">
                     <label for="username" class="form-label">用户名</label>
                     <input v-model="username" type="text" class="form-control" id="username" placeholder="请输入用户名">
@@ -12,6 +12,10 @@
                  <div class="mb-3">
                     <label for="password" class="form-label">密码</label>
                     <input v-model="password" type="password" class="form-control" id="password" placeholder="请输入密码">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">确认密码</label>
+                    <input v-model="confirmedPassword" type="password" class="form-control" id="confirmedPassword" placeholder="请再次输入密码">
                 </div>
                 <div class="error_message">{{error_message}}</div>
                 <button type="submit" class="btn btn-primary">提交</button>
@@ -25,8 +29,9 @@
 
 <script>
 import ContentField from '@/components/ContentField.vue';
-import { useStore } from 'vuex';
 import { ref } from 'vue';
+import router from '@/router';
+import $ from 'jquery';
 
 export default {
   name: "UserAccountRegisterView",
@@ -34,32 +39,38 @@ export default {
     ContentField,
   },
   setup(){
-        const store = useStore();
-        let username = ref('');
-        let password = ref('');
-        let error_message = ref('');
+    let username = ref('');
+    let password = ref('');
+    let confirmedPassword = ref('');
+    let error_message = ref('');
 
-        const login = () => {
-            store.dispatch("login",{
+    const register = () => {
+        $.ajax({
+            url: 'http://127.0.0.1:8080/user/account/register/',
+            type: 'post',
+            data: {
                 username: username.value,
                 password: password.value,
-                success(resp){
-                    console.log("登录成功", resp);
-                },
-                error(resp){
-                    error_message.value = "用户名或密码错误";
-                    console.log("登录失败", resp);
+                confirmedPassword: confirmedPassword.value,
+            },
+            success(resp){
+                if(resp.error_message === "success"){
+                    router.push({name: 'user_account_login'});
+                }else{
+                    error_message.value = resp.error_message;
                 }
-            })
-        };
-
-        return {
-            username,
-            password,
-            error_message,
-            login,
-        }
+            },
+        });
     }
+
+    return {
+        username,
+        password,
+        confirmedPassword,
+        error_message,
+        register,
+    }
+  }
 }
 </script>
 
